@@ -73,7 +73,7 @@ class Agent:
         Provide a JSON string containing query statement.
         like 
         {{
-            'query':'劳动争议 处理方法 具体步骤'
+            'query':'노동 분쟁 처리 방법 구체적 단계'
         }}
         """
         response = self.llm.generate(
@@ -89,7 +89,7 @@ class Agent:
         Provide a JSON string containing query keywords.
         like 
         {{
-            'query':'劳动合同纠纷 判决 分析'
+            'query':'노동계약 분쟁 판결 분석'
         }}
         """
         response = self.llm.generate(
@@ -105,7 +105,7 @@ class Agent:
         Provide a JSON string containing query keywords.
         like 
         {{
-            'query':'侵权人行为 法律条文'
+            'query':'불법행위자 행동 법률 조항'
         }}
         """
         response = self.llm.generate(
@@ -140,7 +140,7 @@ class Agent:
                 queries["experience"], n_results=3
             )
             context += (
-                f"\n遵循下面的经验，以增强回复的逻辑严密性:\n{experience_context}\n"
+                f"\n다음 경험을 참고하여 응답의 논리적 엄밀성을 강화하십시오:\n{experience_context}\n"
             )
 
         if "case" in queries:
@@ -227,7 +227,7 @@ class Agent:
 
         cleaned_response = response.strip().lower()
 
-        # 检查响应是否包含 'true' 或 'false'
+        # 응답에 'true' 또는 'false'가 포함되어 있는지 확인
         if "true" in cleaned_response:
             return True
         elif "false" in cleaned_response:
@@ -254,9 +254,9 @@ class Agent:
 
         experience_entry = {
             "id": str(uuid.uuid4()),
-            "content": experience["context"],  # 这里面放的应该是案件相关的描述
+            "content": experience["context"],  # 여기에 사건과 관련된 설명을 저장합니다
             "metadata": {
-                "context": experience["content"],  # 这里面放的应该是案件相关的指导用
+                "context": experience["content"],  # 여기에 사건과 관련된 지침을 저장합니다
                 "focusPoints": experience["focus_points"],
                 "guidelines": experience["guidelines"],
             },
@@ -274,26 +274,26 @@ class Agent:
     def _generate_experience_summary(
         self, case_content: str, history_context: str
     ) -> Dict[str, Any]:
-        instruction = f"你是{self.role}。{self.description}\n\n"
+        instruction = f"당신은 {self.role}입니다. {self.description}\n\n"
 
         prompt = f"""
-        根据以下案例内容和对话历史，生成一个逻辑上连贯的经验总结。请确保回复内容逻辑严密，并能有效指导类似案件的处理。
+        아래의 사례 내용과 대화 기록을 바탕으로 논리적으로 일관된 경험 요약을 생성하십시오. 응답이 논리적으로 치밀하고 유사한 사건을 처리하는 데 효과적인 지침이 되도록 해 주십시오.
 
-        案例内容: {case_content}
-        对话历史: {history_context}
+        사례 내용: {case_content}
+        대화 기록: {history_context}
 
-        请在回复中提供以下内容：
-        1. 一个简要的案件背景描述，包括案件的主要争议点和各方立场，不要出现真实人名。
-        2. 一个专注于逻辑连贯性的经验描述（内容），包括在处理此类案件时应重点关注的问题和策略。
-        3. 有助于逻辑连贯性的3-5个关键点，具体说明如何在实际处理中应用这些关键点。
-        4. 保持逻辑连贯性的3-5个指南，提供在处理类似案件时需要特别注意的事项和建议。
+        다음 내용을 포함해 주십시오:
+        1. 사건의 주요 쟁점과 각 측의 입장을 포함한 간단한 사건 배경(실제 인명은 사용하지 마십시오).
+        2. 논리적 일관성에 초점을 맞춘 경험 설명(내용)으로, 유사한 사건을 처리할 때 중점적으로 살펴야 할 문제와 전략을 제시하십시오.
+        3. 논리적 일관성을 높이는 데 도움이 되는 3~5개의 핵심 포인트를 제시하고, 실제 처리에서 이를 어떻게 적용할지 설명하십시오.
+        4. 논리적 일관성을 유지하기 위한 3~5개의 가이드라인을 제시하고, 유사한 사건을 다룰 때 특별히 주의해야 할 사항과 조언을 제공하십시오.
 
-        将你的回复格式化为以下结构的JSON对象：
+        응답을 다음 구조의 JSON 객체로 작성해 주십시오:
         {{
-            "context": "简要背景...",
-            "content": "专注于逻辑连贯性的经验描述...",
-            "focus_points": "关键点1, 关键点2, 关键点3",
-            "guidelines": "指南1, 指南2, 指南3"
+            "context": "간단한 배경...",
+            "content": "논리적 일관성에 초점을 맞춘 경험 설명...",
+            "focus_points": "핵심 포인트1, 핵심 포인트2, 핵심 포인트3",
+            "guidelines": "가이드라인1, 가이드라인2, 가이드라인3"
         }}
         """
 
@@ -301,7 +301,7 @@ class Agent:
 
         data = self.extract_response(response)
 
-        # 将列表转换为字符串
+        # 목록을 문자열로 변환합니다
         return self.ensure_ex_string_fields(data)
         # if data and isinstance(data, dict):
         #    for key, value in data.items():
@@ -336,38 +336,38 @@ class Agent:
     def _generate_case_summary(
         self, case_content: str, history_context: str
     ) -> Dict[str, Any]:
-        instruction = f"你是一个{self.role}，擅长快速分析案例并提供敏捷的回应。{self.description}\n\n"
+        instruction = f"당신은 {self.role}로서 사건을 빠르게 분석하고 민첩하게 대응하는 데 능숙합니다. {self.description}\n\n"
 
         prompt = f"""
-        根据以下案例内容和对话历史，生成一个简洁的案例摘要，以提高在类似情况下回应的敏捷性。请确保回复内容能够帮助快速理解案情并迅速制定回应策略。
+        아래의 사례 내용과 대화 기록을 바탕으로 간결한 사례 요약을 작성하여 유사한 상황에서의 대응 민첩성을 높이십시오. 응답은 사건을 빠르게 이해하고 신속히 대응 전략을 수립하는 데 도움이 되어야 합니다.
 
-        案例内容: {case_content}
-        对话历史: {history_context}
+        사례 내용: {case_content}
+        대화 기록: {history_context}
 
-        请在回复中提供以下内容：
-        1. 案例名称及背景：给出一个凝练的案例名称，并简要描述案件的背景，包括主要争议点和各方立场，不要使用真实人名。
-        2. 案件类型：说明这是什么类型的案件（如劳动争议、合同纠纷等）。
-        3. 关键词：提供3-5个能够快速捕捉案件本质的关键词。
-        4. 快速反应点：列出3-5个对于快速理解和处理此类案件至关重要的要点。
-        5. 回应方向：提供3-5个可能的回应方向或角度，以便快速制定回应策略。
+        다음 내용을 포함해 주십시오:
+        1. 사례 이름과 배경: 간결한 사례 이름을 제시하고, 주요 쟁점과 각 측의 입장을 포함한 배경을 간단히 설명하십시오(실제 인명은 사용하지 마십시오).
+        2. 사건 유형: 해당 사건이 어떤 유형(예: 노동 분쟁, 계약 분쟁 등)인지 명시하십시오.
+        3. 핵심 키워드: 사건의 본질을 빠르게 파악할 수 있는 3~5개의 키워드를 제공하십시오.
+        4. 빠른 대응 포인트: 유사한 사건을 신속히 이해하고 처리하는 데 필수적인 3~5개의 핵심 포인트를 제시하십시오.
+        5. 대응 방향: 빠르게 대응 전략을 세우기 위한 3~5개의 가능한 방향이나 관점을 제시하십시오.
 
-        将你的回复格式化为以下结构的JSON对象：
+        응답을 다음 구조의 JSON 객체로 작성해 주십시오:
         {{
-            "content": "案例名称及背景：...",
-            "case_type": "案件类型...",
-            "keywords": "关键词1, 关键词2, 关键词3",
-            "quick_reaction_points": "要点1, 要点2, 要点3",
-            "response_directions": "方向1, 方向2, 方向3"
+            "content": "사례 이름과 배경: ...",
+            "case_type": "사건 유형...",
+            "keywords": "키워드1, 키워드2, 키워드3",
+            "quick_reaction_points": "포인트1, 포인트2, 포인트3",
+            "response_directions": "방향1, 방향2, 방향3"
         }}
 
-        注意：内容应该简洁明了，便于快速识别核心问题和制定回应策略。重点放在能够提高思维敏捷性的信息上,注意格式是上面描述的json。
+        주의: 내용은 간결하고 명확해야 하며, 핵심 문제를 빠르게 파악하고 대응 전략을 수립하는 데 도움이 되는 정보에 집중하십시오. 형식은 위에서 설명한 JSON 구조를 따르십시오.
         """
 
         response = self.llm.generate(instruction, prompt)
 
         data = self.extract_response(response)
 
-        # 确保是字符串
+        # 문자열인지 확인합니다
         return self.ensure_case_string_fields(data)
         # if data and isinstance(data, dict):
         #    for key, value in data.items():
@@ -428,9 +428,9 @@ class Agent:
         return "\n\n".join(formatted_history)
 
     def prepare_case_content(self, history_context: str) -> str:
-        instruction = f"你是一个专业的法官。擅长总结案件情况。\n\n"
+        instruction = f"당신은 전문적인 판사로서 사건 상황을 요약하는 데 능숙합니다.\n\n"
 
-        prompt = "请根据法庭历史，用三句话总结案件情况。"
+        prompt = "법정 기록을 바탕으로 세 문장으로 사건 상황을 요약해 주십시오."
 
         response = self.llm.generate(
             instruction=instruction, prompt=prompt + "\n\n" + history_context
@@ -438,21 +438,21 @@ class Agent:
 
         return response
     
-    # 可选项：可以采用打分的方式进行反思
+    # 선택 사항: 평점을 활용하여 반성 과정을 진행할 수 있습니다
     def _evaluate_response(self, case_content: str, response: str) -> Dict[str, int]:
         instruction = ""
         prompt = f"""
-        请根据案件情况对以下回答进行评估，从思维敏捷性、知识专业性和逻辑严密性三个角度给出1到5的评分：
-        案件内容：
+        아래 사건 내용을 바탕으로 다음 답변을 평가하고, 사고의 민첩성, 지식의 전문성, 논리적 엄밀성 세 가지 관점에서 1~5점으로 점수를 부여하십시오:
+        사건 내용:
         {case_content}
-        回答内容：
+        답변 내용:
         {response}
         
-        请按以下格式输出评分结果：
+        다음 형식으로 점수 결과를 출력해 주십시오:
         {{
-            "agility": 评分,
-            "professionalism": 评分,
-            "logic": 评分
+            "agility": 점수,
+            "professionalism": 점수,
+            "logic": 점수
         }}
         """
 
@@ -461,7 +461,7 @@ class Agent:
 
     def ensure_ex_string_fields(self, data):
         """
-        确保 data 中的特定字段是字符串。
+        데이터의 특정 필드가 문자열인지 확인합니다.
         """
         fields_to_check = {
             "context": str,
@@ -481,7 +481,7 @@ class Agent:
 
     def ensure_case_string_fields(self, data):
         """
-        确保 data 中的特定字段是字符串。
+        데이터의 특정 필드가 문자열인지 확인합니다.
         """
         fields_to_check = [
             "content",

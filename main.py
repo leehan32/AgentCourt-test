@@ -19,10 +19,10 @@ console = Console()
 class CourtSimulation:
     def __init__(self, config_path, case_data, log_level, log_think=False):
         """
-        初始化法庭模拟类
-        :param config_path: 配置文件路径
-        :param case_data: 案例数据（可以是单个文件路径或包含多个案例的目录路径）
-        :param log_level: 日志级别
+        법정 시뮬레이션 클래스를 초기화합니다.
+        :param config_path: 구성 파일 경로
+        :param case_data: 사례 데이터(단일 파일 경로 또는 여러 사례를 포함하는 디렉터리 경로)
+        :param log_level: 로그 수준
         """
         self.setup_logging(log_level)
         self.config = self.load_json(config_path)
@@ -43,17 +43,17 @@ class CourtSimulation:
             for lawyer in self.config["lawyers"]
         ]
         self.role_colors = {
-            "书记员": "cyan",
-            "审判长": "yellow",
-            "原告律师": "green",
-            "被告律师": "red",
+            "법원 서기": "cyan",
+            "재판장": "yellow",
+            "원고 변호사": "green",
+            "피고 변호사": "red",
         }
 
     @staticmethod
     def setup_logging(log_level):
         """
-        设置日志配置
-        :param log_level: 日志级别
+        로그 구성을 설정합니다.
+        :param log_level: 로그 수준
         """
         logging.basicConfig(
             level=log_level,
@@ -65,9 +65,9 @@ class CourtSimulation:
     @staticmethod
     def load_json(file_path):
         """
-        加载JSON文件
-        :param file_path: 文件路径
-        :return: JSON数据
+        JSON 파일을 불러옵니다.
+        :param file_path: 파일 경로
+        :return: JSON 데이터
         """
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -75,9 +75,9 @@ class CourtSimulation:
     @staticmethod
     def load_case_data(case_path):
         """
-        加载案例数据
-        :param case_path: 案例文件路径或目录路径
-        :return: 包含所有案例数据的列表
+        사례 데이터를 불러옵니다.
+        :param case_path: 사례 파일 경로 또는 디렉터리 경로
+        :return: 모든 사례 데이터를 포함한 목록
         """
         cases = []
         with open(case_path, "r", encoding="utf-8") as file:
@@ -88,9 +88,9 @@ class CourtSimulation:
 
     def create_agent(self, role_config, log_think=False):
         """
-        创建角色代理
-        :param role_config: 角色配置
-        :return: Agent实例
+        역할 에이전트를 생성합니다.
+        :param role_config: 역할 구성
+        :return: Agent 인스턴스
         """
         return Agent(
             id=role_config["id"],
@@ -104,10 +104,10 @@ class CourtSimulation:
 
     def add_to_history(self, role, name, content):
         """
-        添加对话到历史记录
-        :param role: 说话角色
-        :param name: 说话人名字
-        :param content: 对话内容
+        대화를 기록에 추가합니다.
+        :param role: 발언 역할
+        :param name: 발언자 이름
+        :param content: 대화 내용
         """
         self.global_history.append({"role": role, "name": name, "content": content})
         color = self.role_colors.get(role, "white")
@@ -117,138 +117,138 @@ class CourtSimulation:
 
     def initialize_court(self):
         """
-        初始化法庭
+        법정을 초기화합니다.
         """
         self.global_history = []
         court_rules = self.config["stenographer"]["court_rules"]
-        self.add_to_history("书记员", self.config["stenographer"]["name"], court_rules)
+        self.add_to_history("법원 서기", self.config["stenographer"]["name"], court_rules)
         self.add_to_history(
-            "审判长",
+            "재판장",
             self.judge.name,
-            "现在开庭。",
+            "지금부터 개정합니다.",
         )
-    # 法庭前确认各种事项的例子，可以根据自己需要，采用大模型结合合适的prompt来模拟，此处仅为简化示例
+    # 법정 개정 전에 다양한 사항을 확인하는 예시로, 필요에 따라 대형 모델과 적절한 프롬프트를 활용해 시뮬레이션할 수 있으며, 여기서는 단순화된 예시입니다.
     def confirm_rights_and_obligations(self):
         """
-        确认诉讼权利义务
+        소송 권리와 의무를 확인합니다.
         """
         self.add_to_history(
-            "审判长",
+            "재판장",
             self.judge.name,
-            "各方对对方出庭人员有无异议？",
+            "각 측은 상대방 출석 인원에 대해 이의가 있습니까?",
         )
         self.add_to_history(
-            "原告律师",
+            "원고 변호사",
             self.plaintiff.name,
-            "无异议",
+            "이의 없습니다.",
         )
         self.add_to_history(
-            "被告律师",
+            "피고 변호사",
             self.defendant.name,
-            "无异议",
+            "이의 없습니다.",
         )
         self.add_to_history(
-            "审判长",
+            "재판장",
             self.judge.name,
-            "经核对，到庭当事人及诉讼代理人身份均符合法律规定，可以参加本案的庭审诉讼活动。有关当事人诉讼权利和义务的规定，已于庭前以书面通知形式告知双方当事人。当事人对诉讼权利义务的内容是否清楚？",
+            "확인 결과, 출석한 당사자와 소송대리인의 신분은 모두 법적 요건을 충족하여 본 사건의 공판에 참여할 수 있습니다. 당사자의 소송상 권리와 의무에 관한 사항은 이미 공판 전에 서면으로 양측에게 통지되었습니다. 당사자들은 해당 권리와 의무의 내용을 명확히 이해하고 있습니까?",
         )
         self.add_to_history(
-            "原告律师",
+            "원고 변호사",
             self.plaintiff.name,
-            "清楚",
+            "잘 알고 있습니다.",
         )
         self.add_to_history(
-            "被告律师",
+            "피고 변호사",
             self.defendant.name,
-            "清楚",
+            "잘 알고 있습니다.",
         )
         self.add_to_history(
-            "审判长",
+            "재판장",
             self.judge.name,
-            "根据民事诉讼法的规定，如双方当事人认为审判人员或书记员是本案当事人、诉讼代理人的近亲属或与本案有直接利害关系或其他关系，可能影响公正审判的，可以提出事实和理由申请回避。当事人是否需要申请回避？",
+            "민사소송법에 따라, 양측 당사자가 재판부 또는 서기가 본 사건 당사자나 소송대리인의 가까운 친족이거나 사건과 직접적인 이해관계 등으로 공정한 재판에 영향을 줄 수 있다고 판단하는 경우, 사실과 사유를 제시하여 기피를 신청할 수 있습니다. 당사자들은 기피 신청이 필요합니까?",
         )
         self.add_to_history(
-            "原告律师",
+            "원고 변호사",
             self.plaintiff.name,
-            "不申请",
+            "신청하지 않습니다.",
         )
         self.add_to_history(
-            "被告律师",
+            "피고 변호사",
             self.defendant.name,
-            "不申请",
+            "신청하지 않습니다.",
         )
 
     def initial_statements(self, case):
         """
-        初始陈述
-        :param case: 当前案例数据
+        초기 진술
+        :param case: 현재 사례 데이터
         """
         self.add_to_history(
-            "审判长",
+            "재판장",
             self.judge.name,
-            "首先由原告陈述诉讼请求、事实和理由。",
+            "먼저 원고 측이 소송 청구, 사실관계 및 이유를 진술해 주십시오.",
         )
         self.add_to_history(
-            "原告律师", self.plaintiff.name, case["plaintiff_statement"]
+            "원고 변호사", self.plaintiff.name, case["plaintiff_statement"]
         )
         self.add_to_history(
-            "审判长",
+            "재판장",
             self.judge.name,
-            "请被告进行答辩。",
+            "피고 측은 답변해 주십시오.",
         )
         self.add_to_history(
-            "被告律师", self.defendant.name, case["defendant_statement"]
+            "피고 변호사", self.defendant.name, case["defendant_statement"]
         )
 
     def judge_initial_question(self):
         """
-        法官初始提问
+        판사의 초기 질문
         """
         content = self.judge.execute(
             None,
             history_list=self.global_history,
-            prompt="根据原告律师、被告律师的陈述，总结双方律师应该针对什么问题进行辩论，你的总结应该在符合现实的基础上，尽量简洁有效。",
+            prompt="원고 변호사와 피고 변호사의 진술을 바탕으로 양측 변호사가 어떤 쟁점을 중심으로 변론해야 하는지 요약하십시오. 현실에 부합하는 범위에서 최대한 간결하고 효과적으로 정리해 주십시오.",
         )
-        self.add_to_history("审判长", self.judge.name, content)
+        self.add_to_history("재판장", self.judge.name, content)
 
     def debate_rounds(self, rounds):
         """
-        辩论环节
-        :param rounds: 辩论轮数
+        변론 단계
+        :param rounds: 변론 라운드 수
         """
         for i in trange(rounds, desc="Debate Rounds"):
             logging.info(f"Starting debate round {i+1}")
             for role, agent in [
-                ("原告律师", self.plaintiff),
-                ("被告律师", self.defendant),
+                ("원고 변호사", self.plaintiff),
+                ("피고 변호사", self.defendant),
             ]:
                 p_q = agent.plan(self.global_history)
                 content = agent.execute(
                     p_q,
                     self.global_history,
-                    prompt=f"根据经验、法条、案例以及法庭对话记录，开始你的辩论。如果你引用了context中的法条库，请把引用的部分说出来。注意：1、当前为法庭辩论环节，而非法庭调查环节。2、你是{role}",
+                    prompt=f"경험, 법조문, 판례 및 법정 대화 기록을 바탕으로 변론을 시작하십시오. context에 포함된 법조문을 인용했다면 해당 부분을 명시해 주십시오. 주의: 1. 지금은 법정 변론 단계이며 법정 조사 단계가 아닙니다. 2. 당신은 {role}입니다.",
                 )
                 self.add_to_history(role, agent.name, content)
 
     def final_judgment(self):
         """
-        最终判决
+        최종 판결
         """
         content = self.judge.speak(
-            self.global_history, prompt="法官请做出判决：(你的判决应该符合现实情况。)"
+            self.global_history, prompt="판사님, 판결을 내려 주십시오. (판결은 현실에 부합해야 합니다.)"
         )
-        self.add_to_history("审判长", self.judge.name, content)
+        self.add_to_history("재판장", self.judge.name, content)
 
     def reflect_and_summary(self):
         """
-        反思和总结
+        반성과 요약
         """
         self.plaintiff.reflect(self.global_history)
         self.defendant.reflect(self.global_history)
 
     def assign_roles(self):
         """
-        随机分配角色
+        역할을 무작위로 배정합니다.
         """
         roles = ["plaintiff", "defendant"]
         # random.shuffle(self.lawyers)
@@ -259,8 +259,8 @@ class CourtSimulation:
 
     def save_progress(self, index):
         """
-        记录运行状态
-        :param index: 当前案例索引
+        실행 상태를 기록합니다.
+        :param index: 현재 사례 인덱스
         """
         progress = {"current_case_index": index}
         with open("progress.json", "w") as f:
@@ -268,8 +268,8 @@ class CourtSimulation:
 
     def load_progress(self):
         """
-        加载运行状态
-        :return: 运行状态字典或None
+        실행 상태를 불러옵니다.
+        :return: 실행 상태 딕셔너리 또는 None
         """
         if os.path.exists("progress.json"):
             with open("progress.json", "r") as f:
@@ -278,7 +278,7 @@ class CourtSimulation:
 
     def run_simulation(self):
         """
-        运行整个法庭模拟过程
+        전체 법정 시뮬레이션 과정을 실행합니다.
         """
         progress = self.load_progress()
         start_index = progress["current_case_index"] if progress else 0
@@ -286,9 +286,9 @@ class CourtSimulation:
         case_data_to_run = self.case_data[:62]
         for index in range(start_index, len(case_data_to_run)):
             case = case_data_to_run[index]
-            console.print(f"\n开始模拟案例 {index + 1}", style="bold")
-            console.print("除审判员的其他人员入场", style="bold")
-            self.assign_roles()  # 随机分配角色
+            console.print(f"\n사례 {index + 1} 시뮬레이션을 시작합니다", style="bold")
+            console.print("재판장을 제외한 다른 인원이 입장합니다", style="bold")
+            self.assign_roles()  # 역할을 무작위로 배정합니다.
             self.initialize_court()
             self.confirm_rights_and_obligations()
             self.initial_statements(case)
@@ -296,19 +296,19 @@ class CourtSimulation:
 
             rounds = random.randint(3, 5)
             self.debate_rounds(rounds)
-            self.save_progress(index)  # 记录当前进度
+            self.save_progress(index)  # 현재 진행 상황을 기록합니다
 
             self.final_judgment()
             self.reflect_and_summary()
-            console.print(f"案例 {index + 1} 庭审结束", style="bold")
+            console.print(f"사례 {index + 1} 공판이 종료되었습니다", style="bold")
             self.save_court_log(
                 f"test_result/ours/1/court_session_test_case_{index + 1}.json"
             )
 
     def save_court_log(self, file_path):
         """
-        保存法庭日志
-        :param file_path: 保存文件路径
+        법정 기록을 저장합니다.
+        :param file_path: 저장할 파일 경로
         """
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(self.global_history, f, ensure_ascii=False, indent=2)
@@ -317,8 +317,8 @@ class CourtSimulation:
 
 def parse_arguments():
     """
-    解析命令行参数
-    :return: 解析后的参数
+    명령줄 인수를 해석합니다.
+    :return: 해석된 인수
     """
     parser = argparse.ArgumentParser(description="Run a simulated court session.")
     parser.add_argument(
@@ -345,7 +345,7 @@ def parse_arguments():
 
 def main():
     """
-    主函数
+    메인 함수
     """
     args = parse_arguments()
     simulation = CourtSimulation(args.config, args.case, args.log_level, args.log_think)

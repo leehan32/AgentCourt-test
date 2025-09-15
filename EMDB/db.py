@@ -56,12 +56,12 @@ class db:
         )
         metadatas = result.get("metadatas", [[]])[0]
 
-        # 查找包含 "context" 键的第一个字典
+        # "context" 키를 포함하는 첫 번째 딕셔너리를 찾습니다.
         for metadata in metadatas:
             if "context" in metadata:
                 return metadata["context"]
 
-        # 如果没有找到包含 "context" 的字典，返回空字符串
+        # 해당 키를 포함한 딕셔너리를 찾지 못하면 빈 문자열을 반환합니다.
         return ""
 
     def query_experience_documents(self, query_text, n_results=5):
@@ -91,12 +91,12 @@ class db:
         )
         metadatas = result.get("metadatas", [[]])[0]
 
-        # 查找包含 "context" 键的第一个字典
+        # "response_directions" 키를 포함하는 첫 번째 딕셔너리를 찾습니다.
         for metadata in metadatas:
             if "response_directions" in metadata:
                 return metadata["response_directions"]
 
-        # 如果没有找到包含 "context" 的字典，返回空字符串
+        # 해당 키를 포함한 딕셔너리를 찾지 못하면 빈 문자열을 반환합니다.
         return ""
 
     def query_legal(self, query_text, n_results=5, include=["documents"]):

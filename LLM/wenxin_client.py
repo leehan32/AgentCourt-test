@@ -86,9 +86,9 @@ class WenxinClient(BaseClient):
 
         response = requests.post(base_url, headers=headers, data=json.dumps(payload))
 
-        # 处理速率限制
+        # 속도 제한 처리
         if response.status_code == 429:
-            print("警告:请求速率超过限制!")
+            print("경고: 요청 속도가 제한을 초과했습니다!")
             remaining_requests = int(
                 response.headers.get("X-Ratelimit-Remaining-Requests", 0)
             )
@@ -96,8 +96,8 @@ class WenxinClient(BaseClient):
                 response.headers.get("X-Ratelimit-Remaining-Tokens", 0)
             )
             if remaining_requests == 0 or remaining_tokens == 0:
-                sleep_time = 60  # 休眠60秒再重试
-                print(f"配额已用尽,{sleep_time}秒后重试...")
+                sleep_time = 60  # 60초 동안 대기한 뒤 재시도
+                print(f"할당량이 모두 소진되었습니다. {sleep_time}초 후에 다시 시도합니다...")
                 time.sleep(sleep_time)
                 return self.send_request(
                     messages,
@@ -121,16 +121,16 @@ class WenxinClient(BaseClient):
         print(text)
 
         if "result" not in text:
-            print("警告:响应中未找到result字段!")
+            print("경고: 응답에서 result 필드를 찾을 수 없습니다!")
             return ""
 
         result = text["result"]
 
         if text.get("is_truncated"):
-            print("注意:输出结果被截断!")
+            print("주의: 출력 결과가 잘렸습니다!")
 
         if text.get("function_call"):
-            print("模型生成了函数调用:")
+            print("모델이 함수 호출을 생성했습니다:")
             print(text["function_call"])
 
         return result
