@@ -45,10 +45,10 @@ class ZhipuAIClient(BaseClient):
             "tool_choice": tool_choice,
             "user_id": user_id,
         }
-        # 移除值为 None 的参数
+        # 값이 None인 매개변수를 제거합니다.
         payload = {k: v for k, v in payload.items() if v is not None}
 
-        # 参数类型检查
+        # 매개변수 유형 검사
         assert isinstance(self.model, str), "model must be a string"
         assert isinstance(messages, list), "messages must be a list"
         assert all(
