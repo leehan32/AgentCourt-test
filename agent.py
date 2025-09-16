@@ -221,6 +221,22 @@ class Agent:
             laws = search_law(query)
 
             processed_laws = []
+
+            if not laws:
+                if self.log_think:
+                    self.logger.info(
+                        "Legal reference requested but no laws were returned for query: %s",
+                        query,
+                    )
+                return {"needed_reference": True, "query": query, "laws": processed_laws}
+
+            if not isinstance(laws, list):
+                self.logger.warning(
+                    "search_law returned unexpected payload of type %s. Skipping law insertion.",
+                    type(laws).__name__,
+                )
+                return {"needed_reference": True, "query": query, "laws": processed_laws}
+
             for law in laws[:3]:  # Limit to 3 laws
                 law_id = str(uuid.uuid4())
                 processed_law = self._process_law(law)
