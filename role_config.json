@@ -3,6 +3,7 @@
     "llm_type": "apillm",
     "api_key": "put your api_key here",
     "api_secret": "put your api_secret here",
+    "api_base": null,
     "model_platform": "wenxin",
     "model_type": "ERNIE-Speed-128K",
     "model_path": "Qwen/Qwen2-1.5B",

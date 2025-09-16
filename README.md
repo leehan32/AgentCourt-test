@@ -86,6 +86,20 @@ To train the model, follow these steps:
     python main.py
     ```
 
+### Configuring Language Models
+
+The behaviour of the simulation depends on the language-model settings in `role_config.json`:
+
+- Set `llm_type` to `offline` to run a locally downloaded Hugging Face model specified by `model_path`.
+- Set `llm_type` to `apillm` to call a hosted API. Configure the following fields:
+  - `model_platform`: Choose from `wenxin`, `openai`, `huggingface`, or `zhipuai`.
+  - `api_key`: Provide the corresponding API token. Placeholder values such as `put your api_key here` will trigger a configuration error when the program starts.
+  - `api_secret`: Required only for Baidu Wenxin.
+  - `api_base`: Optional override for custom API endpoints (useful for Hugging Face Inference Endpoints).
+  - `model_type`: The remote model identifier (for example, `gpt-4o-mini` for OpenAI or `meta-llama/Meta-Llama-3-8B-Instruct` for Hugging Face).
+
+If the credentials are missing or invalid the program now raises a clear error before the simulation begins, rather than failing later during reflection.
+
 ## Test
 
 To perform testing:

@@ -1,12 +1,19 @@
 # api_client/wenxin_client.py
-import requests
 import json
-from .base_client import BaseClient
+import logging
 import time
+
+import requests
+
+from .base_client import BaseClient
 
 
 class WenxinClient(BaseClient):
     def __init__(self, api_key, api_secret, model):
+        if not api_key or not api_secret:
+            raise ValueError(
+                "Wenxin platform requires both api_key and api_secret."
+            )
         self.api_key = api_key
         self.api_secret = api_secret
         self.model = model
@@ -14,8 +21,17 @@ class WenxinClient(BaseClient):
     def get_access_token(self):
         url = f"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={self.api_key}&client_secret={self.api_secret}"
         headers = {"Content-Type": "application/json", "Accept": "application/json"}
-        response = requests.post(url, headers=headers)
-        return response.json().get("access_token")
+        response = requests.post(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        token = data.get("access_token")
+        if not token:
+            error_code = data.get("error") or data.get("error_code")
+            error_msg = data.get("error_description") or data.get("error_msg")
+            raise RuntimeError(
+                f"Failed to obtain Wenxin access token ({error_code}): {error_msg}"
+            )
+        return token
 
     def send_request(
         self,
@@ -84,7 +100,9 @@ class WenxinClient(BaseClient):
         if tool_choice:
             payload["tool_choice"] = tool_choice
 
-        response = requests.post(base_url, headers=headers, data=json.dumps(payload))
+        response = requests.post(
+            base_url, headers=headers, data=json.dumps(payload), timeout=60
+        )
 
         # 속도 제한 처리
         if response.status_code == 429:
@@ -118,19 +136,22 @@ class WenxinClient(BaseClient):
                 )
 
         text = json.loads(response.text)
-        print(text)
+        logging.debug("Wenxin response: %s", text)
 
-        if "result" not in text:
-            print("경고: 응답에서 result 필드를 찾을 수 없습니다!")
+        if text.get("error_code") not in (None, 0):
+            raise RuntimeError(
+                f"Wenxin API error {text.get('error_code')}: {text.get('error_msg')}"
+            )
+
+        result = text.get("result")
+        if result is None:
+            logging.warning("경고: 응답에서 result 필드를 찾을 수 없습니다! 응답: %s", text)
             return ""
 
-        result = text["result"]
-
         if text.get("is_truncated"):
-            print("주의: 출력 결과가 잘렸습니다!")
+            logging.warning("주의: 출력 결과가 잘렸습니다!")
 
         if text.get("function_call"):
-            print("모델이 함수 호출을 생성했습니다:")
-            print(text["function_call"])
+            logging.info("모델이 함수 호출을 생성했습니다: %s", text["function_call"])
 
         return result

@@ -31,10 +31,15 @@ class CourtSimulation:
             self.llm = OfflineLLM(self.config["model_path"])
         elif self.config["llm_type"] == "apillm":
             self.llm = APILLM(
-                api_key=self.config["api_key"],
+                api_key=self.config.get("api_key"),
                 api_secret=self.config.get("api_secret", None),
                 platform=self.config["model_platform"],
                 model=self.config["model_type"],
+                api_base=self.config.get("api_base"),
+            )
+        else:
+            raise ValueError(
+                f"Unsupported llm_type: {self.config['llm_type']}."
             )
 
         self.judge = self.create_agent(self.config["judge"], log_think=log_think)

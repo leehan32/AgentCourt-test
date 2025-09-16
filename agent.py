@@ -254,11 +254,15 @@ class Agent:
 
         experience_entry = {
             "id": str(uuid.uuid4()),
-            "content": experience["context"],  # 여기에 사건과 관련된 설명을 저장합니다
+            "content": experience.get(
+                "context", "모델 응답을 구조화된 형식으로 변환하지 못했습니다."
+            ),  # 여기에 사건과 관련된 설명을 저장합니다
             "metadata": {
-                "context": experience["content"],  # 여기에 사건과 관련된 지침을 저장합니다
-                "focusPoints": experience["focus_points"],
-                "guidelines": experience["guidelines"],
+                "context": experience.get(
+                    "content", "경험 요약 본문이 생성되지 않았습니다."
+                ),  # 여기에 사건과 관련된 지침을 저장합니다
+                "focusPoints": experience.get("focus_points", ""),
+                "guidelines": experience.get("guidelines", ""),
             },
         }
 
@@ -301,6 +305,13 @@ class Agent:
 
         data = self.extract_response(response)
 
+        if not isinstance(data, dict):
+            self.logger.warning(
+                "Experience summary response was not valid JSON. Raw response: %s",
+                data,
+            )
+            return self._default_experience_summary(str(data))
+
         # 목록을 문자열로 변환합니다
         return self.ensure_ex_string_fields(data)
         # if data and isinstance(data, dict):
@@ -317,12 +328,16 @@ class Agent:
 
         case_entry = {
             "id": str(uuid.uuid4()),
-            "content": case_summary["content"],
+            "content": case_summary.get("content", ""),
             "metadata": {
-                "caseType": case_summary["case_type"],
-                "keywords": case_summary["keywords"],
-                "quick_reaction_points": case_summary["quick_reaction_points"],
-                "response_directions": case_summary["response_directions"],
+                "caseType": case_summary.get("case_type", ""),
+                "keywords": case_summary.get("keywords", ""),
+                "quick_reaction_points": case_summary.get(
+                    "quick_reaction_points", ""
+                ),
+                "response_directions": case_summary.get(
+                    "response_directions", ""
+                ),
             },
         }
 
@@ -366,6 +381,13 @@ class Agent:
         response = self.llm.generate(instruction, prompt)
 
         data = self.extract_response(response)
+
+        if not isinstance(data, dict):
+            self.logger.warning(
+                "Case summary response was not valid JSON. Raw response: %s",
+                data,
+            )
+            return self._default_case_summary(str(data))
 
         # 문자열인지 확인합니다
         return self.ensure_case_string_fields(data)
@@ -463,6 +485,9 @@ class Agent:
         """
         데이터의 특정 필드가 문자열인지 확인합니다.
         """
+        if not isinstance(data, dict):
+            return self._default_experience_summary(str(data))
+
         fields_to_check = {
             "context": str,
             "content": str,
@@ -471,11 +496,19 @@ class Agent:
         }
 
         for field, validator in fields_to_check.items():
-            if field in data:
-                if callable(validator):
-                    data[field] = validator(data[field])
-                elif not isinstance(data[field], validator):
-                    raise ValueError(f"{field} must be a {validator.__name__}")
+            value = data.get(field, "")
+            if callable(validator):
+                data[field] = validator(value) if value else ""
+            else:
+                if value is None:
+                    data[field] = ""
+                elif not isinstance(value, validator):
+                    data[field] = str(value)
+                else:
+                    data[field] = value
+
+        for field in fields_to_check:
+            data.setdefault(field, "")
 
         return data
 
@@ -483,6 +516,9 @@ class Agent:
         """
         데이터의 특정 필드가 문자열인지 확인합니다.
         """
+        if not isinstance(data, dict):
+            return self._default_case_summary(str(data))
+
         fields_to_check = [
             "content",
             "case_type",
@@ -492,10 +528,34 @@ class Agent:
         ]
 
         for field in fields_to_check:
-            if field in data:
-                if isinstance(data[field], list):
-                    data[field] = ", ".join(data[field])
-                elif not isinstance(data[field], str):
-                    raise ValueError(f"{field} must be a list or a string")
+            value = data.get(field, "")
+            if isinstance(value, list):
+                data[field] = ", ".join(value)
+            elif value is None:
+                data[field] = ""
+            elif not isinstance(value, str):
+                data[field] = str(value)
+            else:
+                data[field] = value
+
+        for field in fields_to_check:
+            data.setdefault(field, "")
 
         return data
+
+    def _default_experience_summary(self, raw_response: str) -> Dict[str, str]:
+        return {
+            "context": "모델 응답을 구조화된 경험 요약으로 변환하지 못했습니다.",
+            "content": raw_response or "",
+            "focus_points": "",
+            "guidelines": "",
+        }
+
+    def _default_case_summary(self, raw_response: str) -> Dict[str, str]:
+        return {
+            "content": "모델 응답을 구조화된 사례 요약으로 변환하지 못했습니다.",
+            "case_type": "",
+            "keywords": "",
+            "quick_reaction_points": "",
+            "response_directions": "",
+        }
