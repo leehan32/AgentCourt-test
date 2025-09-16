@@ -79,7 +79,14 @@ class Agent:
         response = self.llm.generate(
             instruction=instruction, prompt=prompt + "\n\n" + history_context
         )
-        return self.extract_response(response)
+        data = self.extract_response(response)
+        query = self._extract_query_string(data)
+        if not query and self.log_think:
+            self.logger.warning(
+                "Experience query response missing 'query'. Raw response: %s",
+                data,
+            )
+        return query
 
     def _prepare_case_query(self, history_context: str) -> str:
         instruction = f"You are a {self.role}. {self.description}\n\n"
@@ -95,7 +102,13 @@ class Agent:
         response = self.llm.generate(
             instruction=instruction, prompt=prompt + "\n\n" + history_context
         )
-        return self.extract_response(response)
+        data = self.extract_response(response)
+        query = self._extract_query_string(data)
+        if not query and self.log_think:
+            self.logger.warning(
+                "Case query response missing 'query'. Raw response: %s", data
+            )
+        return query
 
     def _prepare_legal_query(self, history_context: str) -> str:
         instruction = f"You are a {self.role}. {self.description}\n\n"
@@ -111,7 +124,13 @@ class Agent:
         response = self.llm.generate(
             instruction=instruction, prompt=prompt + "\n\n" + history_context
         )
-        return self.extract_response(response)
+        data = self.extract_response(response)
+        query = self._extract_query_string(data)
+        if not query and self.log_think:
+            self.logger.warning(
+                "Legal query response missing 'query'. Raw response: %s", data
+            )
+        return query
 
     # --- Do Phase --- #
 
@@ -133,7 +152,10 @@ class Agent:
         self, plan: Dict[str, Any], history_list: List[Dict[str, str]]
     ) -> str:
         context = ""
-        queries = plan["queries"]
+        raw_queries = plan.get("queries", {})
+        queries = {
+            key: self._extract_query_string(value) for key, value in raw_queries.items()
+        }
 
         if "experience" in queries:
             experience_context = self.db.query_experience_metadatas(
@@ -416,6 +438,40 @@ class Agent:
             except json.JSONDecodeError:
                 pass
         return response.strip()
+
+    def _extract_query_string(self, data: Any) -> str:
+        if isinstance(data, dict):
+            query = data.get("query", "")
+            if isinstance(query, str):
+                return query.strip()
+            if query is None:
+                return ""
+            return str(query)
+
+        if isinstance(data, str):
+            stripped = data.strip()
+            if not stripped:
+                return ""
+            if stripped[0] in "{[":
+                try:
+                    parsed = json.loads(stripped)
+                except json.JSONDecodeError:
+                    pass
+                else:
+                    return self._extract_query_string(parsed)
+            return stripped
+
+        if isinstance(data, (list, tuple)):
+            for item in data:
+                query = self._extract_query_string(item)
+                if query:
+                    return query
+            return ""
+
+        if data is None:
+            return ""
+
+        return str(data)
 
     def _extract_plans(self, plans_str: str) -> Dict[str, bool]:
         try:
