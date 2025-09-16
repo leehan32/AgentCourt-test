@@ -68,6 +68,18 @@ pip install -r requirements.txt
 The dataset used in this project is available on Hugging Face:
 [AgentCourt Dataset](https://huggingface.co/datasets/youzi517/AgentCourt)
 
+## LLM Configuration
+
+AgentCourt can run either with a locally downloaded model or by calling an external API. The behaviour is controlled through the `role_config.json` file.
+
+- **Offline inference**: set `"llm_type": "offline"` and provide the local model path via `"model_path"`.
+- **API inference**: set `"llm_type": "apillm"` and choose a `"model_platform"`:
+  - `"wenxin"` – requires both `"api_key"` and `"api_secret"` issued by Baidu. These values must be filled in before running the simulation.
+  - `"openai"` – supply an OpenAI API key in `"api_key"` and select the chat model name in `"model_type"`.
+  - `"huggingface"` – provide a Hugging Face access token in `"api_key"` and set `"model_type"` to the repository ID of the hosted model (for example, `"meta-llama/Meta-Llama-3-8B-Instruct"`).
+
+If the configuration still contains placeholder strings such as `"put your api_key here"`, the program raises a clear error message so you can update the credentials before the first request is sent.
+
 ## Court Process
 
 ![court_process.png](court_process.png)

@@ -463,6 +463,18 @@ class Agent:
         """
         데이터의 특정 필드가 문자열인지 확인합니다.
         """
+        if not isinstance(data, dict):
+            fallback_content = "" if not data else str(data)
+            self.logger.warning(
+                "Experience summary was not returned as JSON. Falling back to a minimal structure."
+            )
+            return {
+                "context": "",
+                "content": fallback_content,
+                "focus_points": "",
+                "guidelines": "",
+            }
+
         fields_to_check = {
             "context": str,
             "content": str,
@@ -477,12 +489,28 @@ class Agent:
                 elif not isinstance(data[field], validator):
                     raise ValueError(f"{field} must be a {validator.__name__}")
 
+        for field in fields_to_check:
+            data.setdefault(field, "")
+
         return data
 
     def ensure_case_string_fields(self, data):
         """
         데이터의 특정 필드가 문자열인지 확인합니다.
         """
+        if not isinstance(data, dict):
+            fallback_content = "" if not data else str(data)
+            self.logger.warning(
+                "Case summary was not returned as JSON. Falling back to a minimal structure."
+            )
+            return {
+                "content": fallback_content,
+                "case_type": "",
+                "keywords": "",
+                "quick_reaction_points": "",
+                "response_directions": "",
+            }
+
         fields_to_check = [
             "content",
             "case_type",
@@ -497,5 +525,8 @@ class Agent:
                     data[field] = ", ".join(data[field])
                 elif not isinstance(data[field], str):
                     raise ValueError(f"{field} must be a list or a string")
+
+        for field in fields_to_check:
+            data.setdefault(field, "")
 
         return data
